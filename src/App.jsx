@@ -1,10 +1,10 @@
+import './App.css';
 import React, { useState, useEffect } from 'react';
-import './App.css'
 
 function App() {
   const [weatherData, setWeatherData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedDataType, setSelectedDataType] = useState('temp'); // Default to temperature
 
   useEffect(() => {
     const fetchData = async () => {
@@ -23,43 +23,64 @@ function App() {
     fetchData();
   }, []);
 
-  const filterData = () => {
-    const filtered = weatherData.filter(item => {
-      return item.city_name.toLowerCase().includes(searchTerm.toLowerCase());
-    });
+  useEffect(() => {
+    const filterData = () => {
+      const filtered = weatherData.filter((item) => {
+        // Check if the selected data type matches
+        const dataTypeMatch = selectedDataType === 'all' || item[selectedDataType];
+        return dataTypeMatch;
+      });
+      setFilteredData(filtered);
+    };
 
-    setFilteredData(filtered);
+    filterData();
+  }, [selectedDataType, weatherData]);
+
+  const renderSelectedData = (item) => {
+    switch (selectedDataType) {
+      case 'temp':
+        return `Temperature: ${item.temp}°C`;
+      case 'description':
+        return `Weather Description: ${item.weather.description}`;
+      case 'rh':
+        return `Relative Humidity: ${item.rh}%`;
+      case 'vis':
+        return `Visibility: ${item.vis} km`;
+      case 'wind_spd':
+        return `Wind Speed: ${item.wind_spd} m/s`;
+      case 'all':
+        return `All Data: ${JSON.stringify(item)}`;
+      default:
+        return `Temperature: ${item.temp}°C`;
+    }
   };
-
-  // const calculateStatistics = () => {
-  //   const totalItems = filteredData.length;
-  // };
-
-  // useEffect(() => {
-  //   filterData();
-  //   calculateStatistics();
-  // }, [searchTerm, weatherData]);
 
   return (
     <div>
-      <h1>totally awesome weather app</h1>
-      <input
-        type="text"
-        placeholder="Search..."
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-      />
-      {/* <div>
-        <h2>Summary Statistics</h2>
-        <p>Total Items: {statistics.totalItems}</p>
+      <h1>Totally Awesome Weather App</h1>
+      <div>
+        <select
+          value={selectedDataType}
+          onChange={(e) => setSelectedDataType(e.target.value)}
+        >
+          <option value="all">All Data</option>
+          <option value="temp">Temperature</option>
+          <option value="description">Weather Description</option>
+          <option value="rh">Relative Humidity</option>
+          <option value="vis">Visibility</option>
+          <option value="wind_spd">Wind Speed</option>
+        </select>
       </div>
       <ul>
         {filteredData.map((item) => (
-          <li key={item.city_name}>{item.city_name}</li>
+          <div key={item.city_name}>
+            <h2>{item.city_name}</h2>
+            <p>{renderSelectedData(item)}</p>
+          </div>
         ))}
-      </ul> */}
+      </ul>
     </div>
   );
 }
 
-export default App
+export default App;
