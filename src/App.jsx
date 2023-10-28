@@ -1,11 +1,13 @@
 import './App.css';
 import React, { useState, useEffect } from 'react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 
 function App() {
   const [weatherData, setWeatherData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
-  const [selectedDataType, setSelectedDataType] = useState('temp'); // Default to temperature
-
+  const [selectedDataType, setSelectedDataType] = useState('temp');
+  const [minutelyData, setMinutelyData] = useState([]);
+  
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -14,14 +16,15 @@ function App() {
         );
         const data = await response.json();
         setWeatherData(data.data);
+        setMinutelyData(data.minutely);
         setFilteredData(data.data);
       } catch (error) {
         console.error('Error fetching data:', error);
       }
     };
-
+  
     fetchData();
-  }, []);
+  }, []);  
 
   useEffect(() => {
     const filterData = () => {
@@ -55,6 +58,15 @@ function App() {
     }
   };
 
+  const prepareChartData = () => {
+    return minutelyData.map((item) => ({
+      timestamp_local: item.timestamp_local,
+      precipitation: item.precip,
+      snow: item.snow,
+      temperature: item.temp,
+    }));
+  };  
+
   return (
     <div>
       <h1>Totally Awesome Weather App</h1>
@@ -79,6 +91,20 @@ function App() {
           </div>
         ))}
       </ul>
+      <hr></hr>
+      <div>
+        <h2>Graph:</h2>
+        <LineChart width={600} height={300} data={prepareChartData()}>
+          <CartesianGrid strokeDasharray="10 10" />
+          <XAxis dataKey="timestamp_local" />
+          <YAxis />
+          <Tooltip />
+          <Legend />
+          <Line type="monotone" dataKey="precipitation" stroke="blue" name="Precipitation" />
+          <Line type="monotone" dataKey="snow" stroke="purple" name="Snow" />
+          <Line type="monotone" dataKey="temperature" stroke="red" name="Temperature" />
+        </LineChart>
+      </div>
     </div>
   );
 }
